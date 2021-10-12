@@ -74,7 +74,7 @@ public class ContourPipeline extends OpenCvPipeline
             // Remove Noise
             Imgproc.morphologyEx(processed, processed, Imgproc.MORPH_OPEN, new Mat());
             Imgproc.morphologyEx(processed, processed, Imgproc.MORPH_CLOSE, new Mat());
-            // GaussianBlur not tested yet!
+            // GaussianBlur
             Imgproc.GaussianBlur(processed, processed, new Size(5.0, 15.0), 0.00);
             // Find Contours
             List<MatOfPoint> contours = new ArrayList<>();
