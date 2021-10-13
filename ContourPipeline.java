@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opencv;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -19,9 +19,16 @@ import java.util.List;
 public class ContourPipeline extends OpenCvPipeline
 {
     Scalar HOT_PINK = new Scalar(196, 23, 112);
-    // Pink, the default color                         Y      Cr     Cb
+
+    // Pink, the default color                         Y      Cr     Cb    (Do not change Y)
     public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 150.0, 120.0);
-    public static Scalar scalarUpperYCrCb = new Scalar(255.0, 255.0, 255.0); // pink
+    public static Scalar scalarUpperYCrCb = new Scalar(255.0, 255.0, 255.0);
+
+    // Green                                             Y      Cr     Cb
+    // public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 0.0, 0.0);
+    // public static Scalar scalarUpperYCrCb = new Scalar(255.0, 120.0, 120.0);
+    // use this picture for you own color https://raw.githubusercontent.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/main/7e8azlgi.bmp
+    // Note that the Cr and Cb values range between 0-255. this means that the origin of the coordinate system is (128,128)
 
     public boolean error = false;
     public Exception debug;
@@ -106,8 +113,12 @@ public class ContourPipeline extends OpenCvPipeline
                         loopcounter = ploopcounter;
                         first = true;
                     }
+                    areaPoints.release();
                 }
+                contour.release();
             }
+            mat.release();
+            processed.release();
             if (contours.isEmpty())
             {
                 maxRect = new Rect();
