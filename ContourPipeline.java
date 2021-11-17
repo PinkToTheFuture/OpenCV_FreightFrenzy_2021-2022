@@ -23,12 +23,11 @@ public class ContourPipeline extends OpenCvPipeline
     // Pink, the default color                         Y      Cr     Cb    (Do not change Y)
     public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 150.0, 120.0);
     public static Scalar scalarUpperYCrCb = new Scalar(255.0, 255.0, 255.0);
-    // These values define the Range of color, for example green is a color "in between" lightgreen and darkgreen.
 
     // Green                                             Y      Cr     Cb
     // public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 0.0, 0.0);
     // public static Scalar scalarUpperYCrCb = new Scalar(255.0, 120.0, 120.0);
-    // use this picture for you own color https://github.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/blob/main/YCbCr.jpeg
+    // use this picture for you own color https://raw.githubusercontent.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/main/7e8azlgi.bmp
     // Note that the Cr and Cb values range between 0-255. this means that the origin of the coordinate system is (128,128)
 
     public boolean error = false;
@@ -104,9 +103,11 @@ public class ContourPipeline extends OpenCvPipeline
 
                     // if rectangle is larger than previous cycle or if rectangle is not larger than previous 6 cycles > then replace
                     if (rect.area() > maxArea
-                            && rect.x > borderLeftX && rect.x + rect.width < CAMERA_WIDTH - borderRightX
-                            && rect.y > borderTopY && rect.y + rect.height < CAMERA_HEIGHT - borderBottomY
-                            || loopcounter - ploopcounter > 6)
+                            && rect.x + rect.width / 2 > borderLeftX && rect.x + rect.width / 2 < CAMERA_WIDTH - borderRightX
+                            && rect.y + rect.width / 2 > borderTopY && rect.y + rect.height / 2 < CAMERA_HEIGHT - borderBottomY
+                            || loopcounter - ploopcounter > 6
+                            && rect.x + rect.width / 2 > borderLeftX && rect.x + rect.width / 2 < CAMERA_WIDTH - borderRightX
+                            && rect.y + rect.width / 2 > borderTopY && rect.y + rect.height / 2 < CAMERA_HEIGHT - borderBottomY)
                     {
                         maxArea = rect.area();
                         maxRect = rect;
