@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opencv;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -47,7 +47,8 @@ public class ContourPipeline extends OpenCvPipeline
     private Mat mat = new Mat();
     private Mat processed = new Mat();
 
-    private Rect maxRect = new Rect();
+    private Rect maxRect = new Rect(600,1,1,1);
+    private Rect rect = new Rect(600,1,1,1);
 
     private double maxArea = 0;
     private boolean first = false;
@@ -99,7 +100,7 @@ public class ContourPipeline extends OpenCvPipeline
                 if (contourArray.length >= 15)
                 {
                     MatOfPoint2f areaPoints = new MatOfPoint2f(contourArray);
-                    Rect rect = Imgproc.boundingRect(areaPoints);
+                    rect = Imgproc.boundingRect(areaPoints);
 
                     // if rectangle is larger than previous cycle or if rectangle is not larger than previous 6 cycles > then replace
                     if (rect.area() > maxArea
