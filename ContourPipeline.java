@@ -46,6 +46,7 @@ public class ContourPipeline extends OpenCvPipeline
 
     private Mat mat = new Mat();
     private Mat processed = new Mat();
+    private Mat output = new Mat();
 
     private Rect maxRect = new Rect(600,1,1,1);
     private Rect rect = new Rect(600,1,1,1);
@@ -71,7 +72,7 @@ public class ContourPipeline extends OpenCvPipeline
     @Override
     public Mat processFrame(Mat input)
     {
-        Mat output = input.clone();
+        output = input.clone();
         try
         {
             // Process Image
