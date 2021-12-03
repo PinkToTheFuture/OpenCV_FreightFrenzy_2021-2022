@@ -22,12 +22,11 @@ public class ContourPipeline extends OpenCvPipeline {
     // Pink, the default color                         Y      Cr     Cb    (Do not change Y)
     public static Scalar scalarLowerYCrCb = new Scalar(0.0, 150.0, 120.0);
     public static Scalar scalarUpperYCrCb = new Scalar(255.0, 255.0, 255.0);
-    // These values define the Range of color, for example green is a color "in between" lightgreen and darkgreen.
 
     // Green                                             Y      Cr     Cb
     // public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 0.0, 0.0);
     // public static Scalar scalarUpperYCrCb = new Scalar(255.0, 120.0, 120.0);
-    // use this picture for you own color https://github.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/blob/main/YCbCr.jpeg
+    // use this picture for you own color https://raw.githubusercontent.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/main/7e8azlgi.bmp
     // Note that the Cr and Cb values range between 0-255. this means that the origin of the coordinate system is (128,128)
 
     //Volatile bc accessed by opmode without sync
@@ -47,8 +46,10 @@ public class ContourPipeline extends OpenCvPipeline {
 
     private Mat mat = new Mat();
     private Mat processed = new Mat();
+    private Mat output = new Mat();
 
-    private Rect maxRect = new Rect();
+    private Rect maxRect = new Rect(600,1,1,1);
+    private Rect rect = new Rect(600,1,1,1);
 
     private double maxArea = 0;
     private boolean first = false;
