@@ -1,217 +1,147 @@
 package org.firstinspires.ftc.teamcode;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.utility.Globalvalues;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
-import java.util.ArrayList;
-import java.util.List;
+@Config //Disable if not using FTC Dashboard https://github.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022#opencv_freightfrenzy_2021-2022
+@Autonomous(name="OpenCV_Contour_3954_Test", group="Tutorials")
 
-// Credits to team 7303 RoboAvatars, adjusted by team 3954 Pink to the Future
+public class OpenCV_Contour_3954_Test extends LinearOpMode {
+    private OpenCvCamera webcam;
 
-public class ContourPipeline extends OpenCvPipeline {
-    Scalar HOT_PINK = new Scalar(196, 23, 112);
+    private static final int CAMERA_WIDTH  = 640; // width  of wanted camera resolution
+    private static final int CAMERA_HEIGHT = 360; // height of wanted camera resolution
 
-    // Pink, the default color                         Y      Cr     Cb    (Do not change Y)
-    public static Scalar scalarLowerYCrCb = new Scalar(0.0, 150.0, 120.0);
+    private double CrLowerUpdate = 160;
+    private double CbLowerUpdate = 100;
+    private double CrUpperUpdate = 255;
+    private double CbUpperUpdate = 255;
+
+    public static double borderLeftX    = 0.0;   //fraction of pixels from the left side of the cam to skip
+    public static double borderRightX   = 0.0;   //fraction of pixels from the right of the cam to skip
+    public static double borderTopY     = 0.0;   //fraction of pixels from the top of the cam to skip
+    public static double borderBottomY  = 0.0;   //fraction of pixels from the bottom of the cam to skip
+
+    private double lowerruntime = 0;
+    private double upperruntime = 0;
+
+    // Pink Range                                      Y      Cr     Cb
+    public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 160.0, 100.0);
     public static Scalar scalarUpperYCrCb = new Scalar(255.0, 255.0, 255.0);
 
-    // Green                                             Y      Cr     Cb
-    // public static Scalar scalarLowerYCrCb = new Scalar(  0.0, 0.0, 0.0);
-    // public static Scalar scalarUpperYCrCb = new Scalar(255.0, 120.0, 120.0);
-    // use this picture for you own color https://raw.githubusercontent.com/PinkToTheFuture/OpenCV_FreightFrenzy_2021-2022/main/7e8azlgi.bmp
-    // Note that the Cr and Cb values range between 0-255. this means that the origin of the coordinate system is (128,128)
-
-    //Volatile bc accessed by opmode without sync
-    public volatile boolean error = false;
-    public volatile Exception debug;
-
-    private double borderLeftX = 0.0;   //fraction of pixels from the left side of the cam to skip
-    private double borderRightX = 0.0;   //fraction of pixels from the right of the cam to skip
-    private double borderTopY = 0.0;   //fraction of pixels from the top of the cam to skip
-    private double borderBottomY = 0.0;   //fraction of pixels from the bottom of the cam to skip
-
-    private int CAMERA_WIDTH;
-    private int CAMERA_HEIGHT;
-
-    private int loopCounter = 0;
-    private int pLoopCounter = 0;
-
-    private Mat mat = new Mat();
-    private Mat processed = new Mat();
-    private Mat output = new Mat();
-
-    private Rect maxRect = new Rect(600,1,1,1);
-    private Rect rect = new Rect(600,1,1,1);
-
-    private double maxArea = 0;
-    private boolean first = false;
-
-    private final Object sync = new Object();
-
-    public ContourPipeline(double borderLeftX, double borderRightX, double borderTopY, double borderBottomY) {
-        this.borderLeftX = borderLeftX;
-        this.borderRightX = borderRightX;
-        this.borderTopY = borderTopY;
-        this.borderBottomY = borderBottomY;
-    }
-
-    public void configureScalarLower(double y, double cr, double cb) {
-        scalarLowerYCrCb = new Scalar(y, cr, cb);
-    }
-
-    public void configureScalarUpper(double y, double cr, double cb) {
-        scalarUpperYCrCb = new Scalar(y, cr, cb);
-    }
-
-    public void configureScalarLower(int y, int cr, int cb) {
-        scalarLowerYCrCb = new Scalar(y, cr, cb);
-    }
-
-    public void configureScalarUpper(int y, int cr, int cb) {
-        scalarUpperYCrCb = new Scalar(y, cr, cb);
-    }
+    // Yellow Range
+//    public static Scalar scalarLowerYCrCb = new Scalar(0.0, 100.0, 0.0);
+//    public static Scalar scalarUpperYCrCb = new Scalar(255.0, 170.0, 120.0);
 
     @Override
-    public Mat processFrame(Mat input) {
-        CAMERA_WIDTH = input.width();
-        CAMERA_HEIGHT = input.height();
-        try {
-            // Process Image
-            Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2YCrCb);
-            Core.inRange(mat, scalarLowerYCrCb, scalarUpperYCrCb, processed);
-            // Core.bitwise_and(input, input, output, processed);
+    public void runOpMode()
+    {
+        // OpenCV webcam
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        //OpenCV Pipeline
+        ContourPipeline myPipeline;
+        webcam.setPipeline(myPipeline = new ContourPipeline(borderLeftX,borderRightX,borderTopY,borderBottomY));
+        // Configuration of Pipeline
+        myPipeline.configureScalarLower(scalarLowerYCrCb.val[0],scalarLowerYCrCb.val[1],scalarLowerYCrCb.val[2]);
+        myPipeline.configureScalarUpper(scalarUpperYCrCb.val[0],scalarUpperYCrCb.val[1],scalarUpperYCrCb.val[2]);
+        // Webcam Streaming
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                webcam.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPRIGHT);
+            }
 
-            // Remove Noise
-            Imgproc.morphologyEx(processed, processed, Imgproc.MORPH_OPEN, new Mat());
-            Imgproc.morphologyEx(processed, processed, Imgproc.MORPH_CLOSE, new Mat());
-            // GaussianBlur
-            Imgproc.GaussianBlur(processed, processed, new Size(5.0, 15.0), 0.00);
-            // Find Contours
-            List<MatOfPoint> contours = new ArrayList<>();
-            Imgproc.findContours(processed, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+        // Only if you are using ftcdashboard
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        FtcDashboard.getInstance().startCameraStream(webcam, 10);
 
-            // Draw Contours
-            Imgproc.drawContours(input, contours, -1, new Scalar(255, 0, 0));
+        telemetry.update();
+        waitForStart();
 
-            //lock this up to prevent errors when outside threads access the max rect property.
-            synchronized (sync) {
-                // Loop Through Contours
-                for (MatOfPoint contour : contours) {
-                    Point[] contourArray = contour.toArray();
+        while (opModeIsActive())
+        {
+            myPipeline.configureBorders(borderLeftX, borderRightX, borderTopY, borderBottomY);
+            if(myPipeline.error){
+                telemetry.addData("Exception: ", myPipeline.debug);
+            }
+            // Only use this line of the code when you want to find the lower and upper values
+            testing(myPipeline);
 
-                    // Bound Rectangle if Contour is Large Enough
-                    if (contourArray.length >= 15) {
-                        MatOfPoint2f areaPoints = new MatOfPoint2f(contourArray);
-                        Rect rect = Imgproc.boundingRect(areaPoints);
+            telemetry.addData("RectArea: ", myPipeline.getRectArea());
+            telemetry.update();
 
-                        // if rectangle is larger than previous cycle or if rectangle is not larger than previous 6 cycles > then replace
-
-                        if (rect.area() > maxArea
-                                && rect.x > (borderLeftX * CAMERA_WIDTH) && rect.x + rect.width < CAMERA_WIDTH - (borderRightX * CAMERA_WIDTH)
-                                && rect.y > (borderTopY * CAMERA_HEIGHT) && rect.y + rect.height < CAMERA_HEIGHT - (borderBottomY * CAMERA_HEIGHT)
-                                || loopCounter - pLoopCounter > 6) {
-                            maxArea = rect.area();
-                            maxRect = rect;
-                            pLoopCounter++;
-                            loopCounter = pLoopCounter;
-                            first = true;
-                        }
-                        areaPoints.release();
-                    }
-                    contour.release();
+            if(myPipeline.getRectArea() > 2000){
+                if(myPipeline.getRectMidpointX() > 400){
+                    AUTONOMOUS_C();
                 }
-                if (contours.isEmpty()) {
-                    maxRect = new Rect();
+                else if(myPipeline.getRectMidpointX() > 200){
+                    AUTONOMOUS_B();
+                }
+                else {
+                    AUTONOMOUS_A();
                 }
             }
-            // Draw Rectangles If Area Is At Least 500
-            if (first && maxRect.area() > 500) {
-                Imgproc.rectangle(input, maxRect, new Scalar(0, 255, 0), 2);
-            }
-            // Draw Borders
-            Imgproc.rectangle(input, new Rect(
-                    (int) (borderLeftX * CAMERA_WIDTH),
-                    (int) (borderTopY * CAMERA_HEIGHT),
-                    (int) (CAMERA_WIDTH - (borderRightX * CAMERA_WIDTH) - (borderLeftX * CAMERA_HEIGHT)),
-                    (int) (CAMERA_HEIGHT - (borderBottomY * CAMERA_WIDTH) - (borderTopY * CAMERA_HEIGHT))
-            ), HOT_PINK, 2);
-
-            // Display Data
-            Imgproc.putText(input, "Area: " + getRectArea() + " Midpoint: " + getRectMidpointXY().x + " , " + getRectMidpointXY().y, new Point(5, CAMERA_HEIGHT - 5), 0, 0.6, new Scalar(255, 255, 255), 2);
-
-            loopCounter++;
-        } catch (Exception e) {
-            debug = e;
-            error = true;
-        }
-        return input;
-    }
-    /*
-    Synchronize these operations as the user code could be incorrect otherwise, i.e a property is read
-    while the same rectangle is being processed in the pipeline, leading to some values being not
-    synced.
-     */
-
-
-    public int getRectHeight() {
-        synchronized (sync) {
-            return maxRect.height;
         }
     }
-
-    public int getRectWidth() {
-        synchronized (sync) {
-            return maxRect.width;
+    public void testing(ContourPipeline myPipeline){
+        if(lowerruntime + 0.05 < getRuntime()){
+            CrLowerUpdate += -gamepad1.left_stick_y;
+            CbLowerUpdate += gamepad1.left_stick_x;
+            lowerruntime = getRuntime();
         }
+        if(upperruntime + 0.05 < getRuntime()){
+            CrUpperUpdate += -gamepad1.right_stick_y;
+            CbUpperUpdate += gamepad1.right_stick_x;
+            upperruntime = getRuntime();
+        }
+
+        CrLowerUpdate = inValues(CrLowerUpdate, 0, 255);
+        CrUpperUpdate = inValues(CrUpperUpdate, 0, 255);
+        CbLowerUpdate = inValues(CbLowerUpdate, 0, 255);
+        CbUpperUpdate = inValues(CbUpperUpdate, 0, 255);
+
+        myPipeline.configureScalarLower(0.0, CrLowerUpdate, CbLowerUpdate);
+        myPipeline.configureScalarUpper(255.0, CrUpperUpdate, CbUpperUpdate);
+
+        telemetry.addData("lowerCr ", (int)CrLowerUpdate);
+        telemetry.addData("lowerCb ", (int)CbLowerUpdate);
+        telemetry.addData("UpperCr ", (int)CrUpperUpdate);
+        telemetry.addData("UpperCb ", (int)CbUpperUpdate);
     }
-
-    public int getRectX() {
-        synchronized (sync) {
-            return maxRect.x;
-        }
+    public Double inValues(double value, double min, double max){
+        if(value < min){ value = min; }
+        if(value > max){ value = max; }
+        return value;
     }
-
-    public int getRectY() {
-        synchronized (sync) {
-            return maxRect.y;
-        }
+    public void AUTONOMOUS_A(){
+        telemetry.addLine("Autonomous A");
     }
-
-    public double getRectMidpointX() {
-        synchronized (sync) {
-            return getRectX() + (getRectWidth() / 2.0);
-        }
+    public void AUTONOMOUS_B(){
+        telemetry.addLine("Autonomous B");
     }
-
-    public double getRectMidpointY() {
-        synchronized (sync) {
-            return getRectY() + (getRectHeight() / 2.0);
-        }
-    }
-
-    public Point getRectMidpointXY() {
-        synchronized (sync) {
-            return new Point(getRectMidpointX(), getRectMidpointY());
-        }
-    }
-
-    public double getAspectRatio() {
-        synchronized (sync) {
-            return getRectArea() / (CAMERA_HEIGHT * CAMERA_WIDTH);
-        }
-    }
-
-    public double getRectArea() {
-        synchronized (sync) {
-            return maxRect.area();
-        }
+    public void AUTONOMOUS_C(){
+        telemetry.addLine("Autonomous C");
     }
 }
