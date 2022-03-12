@@ -1,5 +1,6 @@
 # OpenCV_FreightFrenzy_2021-2022
 Some files of how to use OpenCV in ftc. It is a bit more advanced than other stuff on the internet.
+It makes a contour around the object and a bounding rectangle, from which you can get info.
 
 Installation OpenCV https://github.com/OpenFTC/EasyOpenCV#installation-instructions-android-studio
 
