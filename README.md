@@ -9,3 +9,6 @@ It is recommended to use Ftc Dashboard for debugging. It will provide you a live
 Info          https://acmerobotics.github.io/ftc-dashboard/
 
 Installation  https://acmerobotics.github.io/ftc-dashboard/gettingstarted
+
+[![](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/yes)](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/yes/vote)
+[![](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/no)](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/no/vote)
