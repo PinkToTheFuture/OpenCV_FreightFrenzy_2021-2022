@@ -11,8 +11,3 @@ Info          https://acmerobotics.github.io/ftc-dashboard/
 Installation  https://acmerobotics.github.io/ftc-dashboard/gettingstarted
 
 Should we make a tutorial on how to implement this?
-
-/polls Option1 'Option 2' "Option 3"
-
-[![](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/yes)](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/yes/vote)
-[![](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/no)](https://api.gh-polls.com/poll/01FZX9MWJXT7Y91QMDPPC15QJQ/no/vote)
